@@ -1,8 +1,9 @@
-# Wiki Lookup Plus — Design Spec
+# Better Wiki Lookup — Design Spec
 
+**Plugin display name:** Better Wiki Lookup
 **Date:** 2026-08-31
 **Status:** Approved (design); pending spec review
-**Target repo:** `runelite-wiki-lookup-plus` (new standalone repo)
+**Target repo:** `runelite-better-wiki-lookup` (new standalone repo)
 **Reference:** [`safmailas/runelite-ping-plugin`](https://github.com/safmailas/runelite-ping-plugin) — used as the AI-SDLC methodology template and Gradle/CI scaffold source.
 
 ---
@@ -77,15 +78,15 @@ Each unit has one purpose, a narrow interface, and is testable in isolation.
 
 | Component | Responsibility | Depends on |
 |---|---|---|
-| `WikiLookupPlusPlugin` | Lifecycle; register `IconOverlay` + mouse listener; owns the `active` flag; wires dependencies. | RuneLite `Plugin`, `OverlayManager`, `MouseManager`, `ScheduledExecutorService` |
-| `WikiLookupConfig` | `enableAi` (default false), `ollamaHost`, `ollamaPort`, `ollamaModel`, `deactivateAfterLookup`, `maxCacheEntries`. | RuneLite `Config` |
+| `BetterWikiLookupPlugin` | Lifecycle; register `IconOverlay` + mouse listener; owns the `active` flag; wires dependencies. | RuneLite `Plugin`, `OverlayManager`, `MouseManager`, `ScheduledExecutorService` |
+| `BetterWikiLookupConfig` | `enableAi` (default false), `ollamaHost`, `ollamaPort`, `ollamaModel`, `deactivateAfterLookup`, `maxCacheEntries`. | RuneLite `Config` |
 | `IconOverlay` | Draw the minimap-adjacent icon; expose its screen bounds; report clicks on it. | `Client`, `OverlayManager` |
 | `LookupClickHandler` | `MouseListener`; when `active`, consume the next left-click and build a click context (screen point + hovered `MenuEntry` + hovered `Widget`). | `Client`, `MouseManager` |
 | `TargetExtractor` | Click context → `LookupTarget { rawText, type, id? }`. Classifies NPC / GAME_OBJECT / GROUND_ITEM / ITEM / WIDGET_TEXT. Strips level/quantity/colour tags and menu prefixes. | `Client` (read-only), `ItemManager` for item names |
 | `Resolver` | `LookupTarget → ResolvedPage { url, pageTitle, source }`. Pipeline: `ResolutionCache` → direct-name → `OllamaClient` → `Special:Search`. Stateless beyond its injected collaborators. | `ResolutionCache`, `OllamaClient`, `WikiUrls` |
 | `OllamaClient` | `POST http://{host}:{port}/api/generate` with a fixed prompt; parse `{ title, summary, confidence }`; ~2s connect+read timeout; any failure returns `null`. Also a cheap `isAvailable()` probe used to gate the AI path. | Injected `OkHttpClient`, Gson |
 | `WikiUrls` | Build and URL-encode `/w/<Title>` (spaces → underscores) and `Special:Search?search=<term>`. Pure functions. | — |
-| `ResolutionCache` | Single JSON file `RUNELITE_DIR/wiki-lookup-plus/resolutions.json`: `normalizedKey → { pageTitle, summary, source, savedAt }`. Bounded LRU (`maxCacheEntries`, default 1000). Load once on startup; debounced async save on write. All disk I/O lives here. | `RUNELITE_DIR`, Gson |
+| `ResolutionCache` | Single JSON file `RUNELITE_DIR/better-wiki-lookup/resolutions.json`: `normalizedKey → { pageTitle, summary, source, savedAt }`. Bounded LRU (`maxCacheEntries`, default 1000). Load once on startup; debounced async save on write. All disk I/O lives here. | `RUNELITE_DIR`, Gson |
 
 ### `LookupTarget` types
 
@@ -106,7 +107,7 @@ and for the methodology write-up's telemetry section.
 Deliberately minimal, decided up front:
 
 - **Transient state:** exactly one field — `boolean active` on
-  `WikiLookupPlusPlugin`. Flipped only by an icon click or a lifecycle event.
+  `BetterWikiLookupPlugin`. Flipped only by an icon click or a lifecycle event.
   No other class holds lookup-mode state.
 - **Persistent state:** exactly one owner — `ResolutionCache`. Mutated only
   through `get(key)` / `put(key, entry)`. No other class touches the file or
@@ -178,7 +179,7 @@ second lookup of the same target confirming a direct cache hit.
 
 ## 8. Repository & build
 
-- **New repo** `runelite-wiki-lookup-plus`.
+- **New repo** `runelite-better-wiki-lookup`.
 - Gradle scaffold copied from `runelite-ping-plugin`: `build.gradle`,
   wrapper, `example` run task / dev client launcher, `checkstyle` config.
 - `sourceCompatibility` / `targetCompatibility` = **JDK 11**; CI also builds on
@@ -211,7 +212,7 @@ The AI-SDLC process, generalized from how the ping plugin was built:
 Runbook:
 
 - Fork `runelite/plugin-hub`, branch per plugin.
-- Add `plugins/wiki-lookup-plus` manifest: `repository=<https clone url>`,
+- Add `plugins/better-wiki-lookup` manifest: `repository=<https clone url>`,
   `commit=<40-char hash>`.
 - PR description template, including the review-risk framing:
   *localhost-only optional AI, plugin fully functional without it, only outbound

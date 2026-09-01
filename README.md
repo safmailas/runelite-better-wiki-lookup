@@ -10,7 +10,7 @@ model is available.
 
 **Status:** design approved, implementation not started.
 
-See [`docs/superpowers/specs/2026-08-31-wiki-lookup-plus-design.md`](docs/superpowers/specs/2026-08-31-wiki-lookup-plus-design.md)
+See [`docs/superpowers/specs/2026-08-31-better-wiki-lookup-design.md`](docs/superpowers/specs/2026-08-31-better-wiki-lookup-design.md)
 for the full design spec.
 
 ## License
